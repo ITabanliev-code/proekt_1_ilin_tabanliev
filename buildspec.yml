@@ -1,0 +1,39 @@
+version: 0.2
+env:
+  secrets-manager:
+    AWS_SECRET_ACCESS_KEY: "eclipse-uservice-deployer:AWS_SECRET_ACCESS_KEY"
+    AWS_ACCESS_KEY_ID: "eclipse-uservice-deployer:AWS_ACCESS_KEY_ID"
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+    commands:
+     - echo "install phase started"
+     - npm run aws:ca:login
+     - npm cache clean --force
+    # - npm install -g increase-memory-limit
+    # - increase-memory-limit
+     - npm run cpq:install
+     - export NODE_OPTIONS=--max_old_space_size=8000
+     - echo "install phase ended"
+  build:
+    commands:
+     - npm run-script build
+     - echo "build complete"
+     - mkdir -p build
+  post_build:
+    commands:
+     - echo "post phase started"
+     - echo "delete map files & txt files"
+     - rm build/static/js/*.map
+     - rm build/static/js/*.txt
+     - rm build/static/css/*.map
+     - mv build/static/js/2.*.chunk.js build/static/js/2.chunk.js
+     - mv build/static/js/main.*.chunk.js build/static/js/main.chunk.js  
+     - mv build/static/js/runtime-main.*.js build/static/js/runtime-main.js
+     - mv build/static/css/main.*.chunk.css build/static/css/main.chunk.css
+     - mv build/static/css/2.*.chunk.css build/static/css/2.chunk.css
+     - mv build/static static
+artifacts:
+  files:
+    - 'static/**/*'
